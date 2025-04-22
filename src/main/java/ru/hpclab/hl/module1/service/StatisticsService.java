@@ -12,7 +12,7 @@ public class StatisticsService {
     }
 
     @Async(value = "applicationTaskExecutor")
-    @Scheduled(fixedRateString = "${service.statistic.delay}")
+    @Scheduled(fixedDelayString = "${service.statistic.delay}")
     public void scheduleFixedRateTaskAsync() throws InterruptedException {
         System.out.println(
                 Thread.currentThread().getName() + " - Fixed rate task async - " + delay + " - customer count: "
