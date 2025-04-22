@@ -1,6 +1,5 @@
 package ru.hpclab.hl.module1.service;
 
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import ru.hpclab.hl.module1.service.cache.CustomerCache;
 
@@ -11,7 +10,6 @@ public class StatisticsService {
         this.delay = delay;
     }
 
-    @Async(value = "applicationTaskExecutor")
     @Scheduled(fixedDelayString = "${service.statistic.delay}")
     public void scheduleFixedRateTaskAsync() throws InterruptedException {
         System.out.println(
