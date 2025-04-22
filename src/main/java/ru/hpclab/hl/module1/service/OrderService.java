@@ -1,79 +1,43 @@
 package ru.hpclab.hl.module1.service;
 
-import lombok.AllArgsConstructor;
-import org.springframework.beans.BeanUtils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.hpclab.hl.module1.dto.OrderDTO;
-import ru.hpclab.hl.module1.entity.postgresql.OrderEntity;
-import ru.hpclab.hl.module1.entity.postgresql.OrderItemEntity;
-import ru.hpclab.hl.module1.model.order.Order;
-import ru.hpclab.hl.module1.repository.postgresql.jpa.OrderRepositoryJpa;
-import ru.hpclab.hl.module1.repository.postgresql.mapper.OrderMapper;
+import ru.hpclab.hl.module1.model.Product;
+import ru.hpclab.hl.module1.model.order.OrderCustomerPrice;
+import ru.hpclab.hl.module1.repository.webapi.WebApiOrderRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
-public class OrderService extends AbstractService {
-    private final OrderRepositoryJpa repository;
-    private final OrderMapper orderMapper;
+@RequiredArgsConstructor
+public class OrderService {
+    private final WebApiOrderRepository webApiOrderRepository;
 
-    public OrderDTO create(Order entity) {
-        var orderItems = entity.getOrderItems();
+    private final ProductService productService;
 
-        entity.setOrderItems(null);
+    private final CustomerService customerService;
 
-        OrderEntity orderEntity = orderMapper.modelToEntity(entity);
+    public List<OrderCustomerPrice> calculateTotalOrdersPrices() {
+        List<OrderDTO> orders = webApiOrderRepository.findAll();
 
-        OrderEntity existedEntity = repository.save(orderEntity);
+        return orders.stream()
+                .map(order -> {
+                    BigDecimal total = order.getOrderItems().stream()
+                            .map(item -> {
+                                Product product = productService.getProductById(item.getProductId());
+                                return product.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
+                            })
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        entity.setOrderItems(orderItems);
-
-        BeanUtils.copyProperties(existedEntity, entity, getNullPropertyNames(existedEntity));
-
-        orderEntity = orderMapper.modelToEntity(entity);
-
-        if (orderEntity.getOrderItems() != null) {
-            for (OrderItemEntity item : orderEntity.getOrderItems()) {
-                item.setOrder(orderEntity);
-            }
-        }
-
-        existedEntity = repository.save(orderEntity);
-
-        return orderMapper.entityToDTO(existedEntity);
-    }
-
-    public List<OrderDTO> getAll() {
-        List<OrderEntity> entities = repository.findAll();
-        return entities.stream().map(orderMapper::entityToDTO).collect(Collectors.toList());
-    }
-
-    public OrderDTO getById(Long id) {
-        Optional<OrderEntity> entityOpt = repository.findById(id);
-        return entityOpt.map(orderMapper::entityToDTO).orElse(null);
-    }
-
-    public void delete(Long id) {
-        repository.deleteById(id);
-    }
-
-    public OrderDTO update(Long id, Order updatedEntity) {
-        OrderEntity existedEntity = repository.findById(id).orElseThrow();
-        BeanUtils.copyProperties(updatedEntity, existedEntity, getNullPropertyNames(updatedEntity));
-        OrderEntity savedEntity = repository.save(existedEntity);
-        return orderMapper.entityToDTO(savedEntity);
-    }
-
-    public void clear() {
-        repository.deleteAll();
-    }
-
-    public BigDecimal calculateTotalPrice(Long orderId) {
-        return repository.calculateTotalPrice(orderId);
+                    return OrderCustomerPrice.builder()
+                            .orderId(order.getId())
+                            .CustomerId(customerService.getCustomerById(order.getCustomerId()).getId())
+                            .totalPrice(total)
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 }
-
