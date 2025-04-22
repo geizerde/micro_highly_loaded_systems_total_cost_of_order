@@ -1,4 +1,4 @@
-package ru.hpclab.hl.module1.repository.webapi;
+package ru.hpclab.hl.module1.client;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -7,7 +7,7 @@ import ru.hpclab.hl.module1.model.Customer;
 
 @Repository
 @RequiredArgsConstructor
-public class WebApiCustomerRepository {
+public class WebApiCustomerClient {
     private final WebClient coreServiceWebClient;
 
     public Customer findCustomerById(Long id) {
