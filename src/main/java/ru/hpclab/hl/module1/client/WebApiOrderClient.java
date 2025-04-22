@@ -1,4 +1,4 @@
-package ru.hpclab.hl.module1.repository.webapi;
+package ru.hpclab.hl.module1.client;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
-public class WebApiOrderRepository {
+public class WebApiOrderClient {
     private final WebClient coreServiceWebClient;
 
     public List<OrderDTO> findAll() {

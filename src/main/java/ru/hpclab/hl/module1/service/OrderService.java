@@ -2,10 +2,10 @@ package ru.hpclab.hl.module1.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.hpclab.hl.module1.client.WebApiOrderClient;
 import ru.hpclab.hl.module1.dto.OrderDTO;
 import ru.hpclab.hl.module1.model.Product;
 import ru.hpclab.hl.module1.model.order.OrderCustomerPrice;
-import ru.hpclab.hl.module1.repository.webapi.WebApiOrderRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -14,14 +14,14 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class OrderService {
-    private final WebApiOrderRepository webApiOrderRepository;
+    private final WebApiOrderClient webApiOrderClient;
 
     private final ProductService productService;
 
     private final CustomerService customerService;
 
     public List<OrderCustomerPrice> calculateTotalOrdersPrices() {
-        List<OrderDTO> orders = webApiOrderRepository.findAll();
+        List<OrderDTO> orders = webApiOrderClient.findAll();
 
         return orders.stream()
                 .map(order -> {
