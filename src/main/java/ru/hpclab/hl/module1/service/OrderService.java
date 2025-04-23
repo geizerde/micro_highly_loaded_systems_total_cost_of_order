@@ -6,6 +6,7 @@ import ru.hpclab.hl.module1.client.WebApiOrderClient;
 import ru.hpclab.hl.module1.dto.OrderDTO;
 import ru.hpclab.hl.module1.model.Product;
 import ru.hpclab.hl.module1.model.order.OrderCustomerPrice;
+import ru.hpclab.hl.module1.service.statistics.ObservabilityService;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -20,10 +21,14 @@ public class OrderService {
 
     private final CustomerService customerService;
 
+    private final ObservabilityService observabilityService;
+
     public List<OrderCustomerPrice> calculateTotalOrdersPrices() {
         List<OrderDTO> orders = webApiOrderClient.findAll();
 
-        return orders.stream()
+        observabilityService.start(getClass().getSimpleName() + ":calculateTotalOrdersPrices");
+
+        var res = orders.stream()
                 .map(order -> {
                     BigDecimal total = order.getOrderItems().stream()
                             .map(item -> {
@@ -39,5 +44,9 @@ public class OrderService {
                             .build();
                 })
                 .collect(Collectors.toList());
+
+        observabilityService.stop(getClass().getSimpleName() + ":calculateTotalOrdersPrices");
+
+        return res;
     }
 }
