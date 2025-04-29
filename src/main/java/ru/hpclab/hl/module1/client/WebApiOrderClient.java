@@ -1,16 +1,12 @@
 package ru.hpclab.hl.module1.client;
 
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 import ru.hpclab.hl.module1.dto.OrderDTO;
-import ru.hpclab.hl.module1.model.Product;
 import ru.hpclab.hl.module1.service.statistics.ObservabilityService;
 
-import java.util.Collections;
 import java.util.List;
 
 @Repository
@@ -19,10 +15,8 @@ public class WebApiOrderClient {
     private final WebClient coreServiceWebClient;
     private final ObservabilityService observabilityService;
 
-    @CircuitBreaker(name = "CORE_SERVICE", fallbackMethod = "fallback")
     @Retry(name = "CORE_SERVICE")
     public List<OrderDTO> findAll() {
-        System.out.println("findAll");
         observabilityService.start(getClass().getSimpleName() + ":findAll");
 
         List<OrderDTO> orders = coreServiceWebClient.get()
@@ -35,10 +29,5 @@ public class WebApiOrderClient {
         observabilityService.stop(getClass().getSimpleName() + ":findAll");
 
         return orders;
-    }
-
-    private List<OrderDTO> fallback(Exception e) {
-        System.out.println("Fallback for findAll triggered: " + e.getMessage());
-        return List.of();
     }
 }
