@@ -7,7 +7,7 @@ import ru.hpclab.hl.module1.dto.OrderDTO;
 import ru.hpclab.hl.module1.model.Customer;
 import ru.hpclab.hl.module1.model.Product;
 import ru.hpclab.hl.module1.model.order.OrderCustomerPrice;
-import ru.hpclab.hl.module1.service.cache.CustomerCache;
+import ru.hpclab.hl.module1.service.cache.CustomerRedisCache;
 import ru.hpclab.hl.module1.service.statistics.ObservabilityService;
 
 import java.math.BigDecimal;
@@ -24,6 +24,8 @@ public class OrderService {
     private final CustomerService customerService;
 
     private final ObservabilityService observabilityService;
+
+    private final CustomerRedisCache customerCache;
 
     public List<OrderCustomerPrice> calculateTotalOrdersPrices() {
         List<OrderDTO> orders = webApiOrderClient.findAll();
@@ -53,14 +55,14 @@ public class OrderService {
     }
 
     private Customer getCustomerById(Long id) {
-        if (!CustomerCache.contains(id)) {
+        if (!customerCache.contains(id)) {
             var customer = customerService.getCustomerById(id);
 
-            CustomerCache.put(customer);
+            customerCache.put(customer);
 
             return customer;
         }
 
-        return CustomerCache.get(id).orElseThrow();
+        return customerCache.get(id).orElseThrow();
     }
 }

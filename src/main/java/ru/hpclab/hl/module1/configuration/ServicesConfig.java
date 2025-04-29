@@ -9,6 +9,7 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import ru.hpclab.hl.module1.service.StatisticsService;
 import reactor.netty.http.client.HttpClient;
+import ru.hpclab.hl.module1.service.cache.CustomerRedisCache;
 
 import java.time.Duration;
 
@@ -40,7 +41,7 @@ public class ServicesConfig {
 
     @Bean
     @ConditionalOnProperty(prefix = "statistics", name = "service", havingValue = "true")
-    StatisticsService statisticsService() {
-        return new StatisticsService(delay);
+    StatisticsService statisticsService(CustomerRedisCache customerCache) {
+        return new StatisticsService(delay, customerCache);
     }
 }
